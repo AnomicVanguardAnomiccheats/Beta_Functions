@@ -1,0 +1,1341 @@
+local Players = game:GetService('Players')
+local LocalPlayer = Players.LocalPlayer
+local Char = LocalPlayer.Character or LocalPlayer.CharacterAdded:Wait()
+local Humanoid = Char:FindFirstChild('Humanoid')
+local HumanoidRootPart = Char:FindFirstChild('HumanoidRootPart')
+local PlayerVehicles = workspace.PlayerVehicles
+local uis = game:GetService("UserInputService")
+local CS = game:GetService("CollectionService")
+local coregui = game:GetService("CoreGui")
+local RunService = game:GetService("RunService")
+local camera = game.Workspace.CurrentCamera
+local mouse = LocalPlayer:GetMouse()
+local itemlist = game:GetService("ReplicatedStorage")["_CS.Events"].GetList:Invoke()
+
+
+local Rayfield = loadstring(game:HttpGet('https://sirius.menu/rayfield'))()
+
+local AlertonAdmin
+local KickonAdmin
+local repeatvoiding
+local ignoreeventcars
+local cachedposition = CFrame.new()
+local EnableSeats
+local CarLockBypass
+local ESPColor
+local PrinterCrateESP
+local gaymode
+local Hue
+local ItemESPToggle
+local PrinterCrateFolder
+local ItemESPFolder
+local PlayerESPToggle
+local PlayerESPFolder
+local nametagsesp
+local showhealth
+local showdistance
+local SilentAimLegitToggle
+local maxDistance
+local SilentAimCircle = Instance.new("ScreenGui", coregui)
+local rangeFrame
+local silentaimrangeslider
+local RemoveGunSpreadToggle
+local AutoReloadShotgunToggle
+local HitBoxSliderValue
+local ExpandPart
+local HitboxToggle
+
+local AccuracyTable = {}
+local voidedcars = {}
+local changecolor = {}
+local nongaycolorchange = {}
+local tagstoupdate = {}
+local hookedfunctions = {}
+local bodyparts = {}
+local expandedparts = {}
+
+local function updateCharacterReferences()
+    Char = LocalPlayer.Character or LocalPlayer.CharacterAdded:Wait()
+    HumanoidRootPart = Char:WaitForChild('HumanoidRootPart')
+    Humanoid = Char:WaitForChild('Humanoid')
+end
+
+local function updateRangeFrame()
+    local mouseLocation = uis:GetMouseLocation()
+    rangeFrame.Position = UDim2.new(0, mouseLocation.X, 0, mouseLocation.Y-25)
+end
+
+local function hookfunctiontest()
+    local succ, err = pcall(function()
+        local function test()
+            return true
+        end
+        local ref
+        ref = hookfunction(test, function()
+            return false
+        end)
+
+        if test() == false and ref() == true and test ~= ref then
+            return true
+        end
+        return false
+    end)
+    if succ then
+        return true
+    else
+        return false
+    end
+end
+
+local function getDistanceFromMouseToPart(mouseLocation, part)
+    local partScreenPoint, onScreen = camera:WorldToViewportPoint(part.Position)
+    if onScreen then
+        local dx = mouseLocation.X - partScreenPoint.X
+        local dy = mouseLocation.Y - partScreenPoint.Y
+        return math.sqrt(dx * dx + dy * dy)
+    end
+    return math.huge
+end
+
+local function IfLocalPlayerIsInCar(returnVehicleObject)
+    for i,v in pairs(PlayerVehicles:GetChildren()) do
+        if v:IsA('Model') and v:FindFirstChild('VehicleSeat') and Humanoid then
+            if v:FindFirstChild('VehicleSeat').Occupant == Humanoid then
+                if returnVehicleObject == true then
+                    return v
+                elseif returnVehicleObject == false then
+                    return true
+                end
+            end
+        end
+    end
+    return false
+end
+
+local function ExitVehicle()
+    repeat
+        Humanoid.Jump = true
+        task.wait()
+    until IfLocalPlayerIsInCar(false) == false
+end
+
+local function sitinseat(car, seatName)
+    if seatName == "FrontLeft" then
+        car.VehicleSeat:Sit(Humanoid)
+    else
+        car.Body:WaitForChild(seatName .. "S"):Sit(Humanoid)
+    end
+end
+
+local function notify(Header, Message, ImageIdorInstance, Seconds)
+    if type(ImageIdorInstance) == "number" then
+        Rayfield:Notify({
+            Title = Header,
+            Content = Message,
+            Duration = Seconds,
+            Image = ImageIdorInstance,
+            Actions = {
+                Ignore = {
+                    Name = "Okay!",
+                    Callback = function()
+                    end
+                },
+            },
+         })
+    else
+        Rayfield:Notify({
+            Title = Header,
+            Content = Message,
+            Duration = Seconds,
+            Image = ImageIdorInstance,
+            Actions = {
+                Ignore = {
+                    Name = "Okay!",
+                    Callback = function()
+                    end
+                },
+            },
+         })
+    end
+end
+
+local function makeprinteresp(PossibleTarget)
+    if PossibleTarget.Name == "Simple Printer" or PossibleTarget.Name == "Hotwired Printer" or PossibleTarget.Name == "Crate" then
+
+        local ToolName = PossibleTarget.Name
+        local EspFolder = Instance.new("Folder", PrinterCrateFolder)
+        local InsertBillboard = Instance.new("BillboardGui", EspFolder)
+        local InsertText = Instance.new("TextLabel", InsertBillboard)
+        local HandleAdornment = Instance.new("BoxHandleAdornment", EspFolder)
+
+        InsertBillboard.ExtentsOffset = Vector3.new(0, 1.5, 0)
+        InsertBillboard.Size = UDim2.new(0, 250, 0, 15)
+        InsertBillboard.AlwaysOnTop = true
+        InsertBillboard.Adornee = PossibleTarget
+
+        InsertText.Size = UDim2.new(0, 250, 0, 15)
+        InsertText.BackgroundTransparency = 1
+        InsertText.TextColor3 = ESPColor
+        InsertText.TextScaled = true
+        InsertText.TextTransparency = .3
+        InsertText.TextStrokeColor3 = Color3.new(0, 0, 0)
+        InsertText.TextStrokeTransparency = 0
+        InsertText.Text = ToolName
+
+        HandleAdornment.Adornee = PossibleTarget:WaitForChild("outerhitbox")
+        HandleAdornment.Size = PossibleTarget:WaitForChild("outerhitbox").Size
+        HandleAdornment.AdornCullingMode = Enum.AdornCullingMode.Automatic
+        HandleAdornment.AlwaysOnTop = true
+        HandleAdornment.ZIndex = 0
+        HandleAdornment.Transparency = 0.75
+        HandleAdornment.Color3 = ESPColor
+        table.insert(changecolor, HandleAdornment)
+        table.insert(changecolor, InsertText)
+
+        PossibleTarget.AncestryChanged:Connect(function(child, parent)
+            if not parent then
+                EspFolder:Destroy()
+            end
+        end)
+    end
+end
+
+local function makeitemespitems(Item, Folder, justadded)
+    if Item.Name == "ToolModel" then
+        if justadded == false then
+            if Item then
+                if Item:FindFirstChild("Handle"):FindFirstChild("ToolBG") then
+                    local ToolName = Item.Handle.ToolBG.ToolName.Value
+                    local EspFolder = Instance.new("Folder", Folder)
+                    local InsertBillboard = Instance.new("BillboardGui", EspFolder)
+                    local InsertText = Instance.new("TextLabel", InsertBillboard)
+                    local HandleAdornment = Instance.new("BoxHandleAdornment", EspFolder)
+            
+                    InsertBillboard.ExtentsOffset = Vector3.new(0, 1.5, 0)
+                    InsertBillboard.Size = UDim2.new(0, 250, 0, 15)
+                    InsertBillboard.AlwaysOnTop = true
+                    InsertBillboard.Adornee = Item
+            
+                    InsertText.Size = UDim2.new(0, 250, 0, 15)
+                    InsertText.BackgroundTransparency = 1
+                    InsertText.TextColor3 = ESPColor
+                    InsertText.TextScaled = true
+                    InsertText.TextTransparency = .3
+                    InsertText.TextStrokeColor3 = Color3.new(0, 0, 0)
+                    InsertText.TextStrokeTransparency = 0
+                    InsertText.Text = ToolName
+            
+                    HandleAdornment.Adornee = Item:WaitForChild("hitbox")
+                    HandleAdornment.Size = Item:WaitForChild("hitbox").Size
+                    HandleAdornment.AdornCullingMode = Enum.AdornCullingMode.Never
+                    HandleAdornment.AlwaysOnTop = true
+                    HandleAdornment.ZIndex = 0
+                    HandleAdornment.Transparency = 0.75
+                    HandleAdornment.Color3 = ESPColor
+                    table.insert(changecolor, HandleAdornment)
+                    table.insert(changecolor, InsertText)
+            
+                    Item.AncestryChanged:Connect(function(child, parent)
+                        if not parent then
+                            EspFolder:Destroy()
+                        end
+                    end)
+                end
+            end
+        end
+        if justadded == true then
+            repeat task.wait() until Item:FindFirstChild("Handle")
+            repeat task.wait() until Item.Handle:FindFirstChild("ToolBG")
+            if Item:FindFirstChild("Handle"):FindFirstChild("ToolBG") then
+                local ToolName = Item.Handle.ToolBG.ToolName.Value
+                local EspFolder = Instance.new("Folder", Folder)
+                local InsertBillboard = Instance.new("BillboardGui", EspFolder)
+                local InsertText = Instance.new("TextLabel", InsertBillboard)
+                local HandleAdornment = Instance.new("BoxHandleAdornment", EspFolder)
+        
+                InsertBillboard.ExtentsOffset = Vector3.new(0, 1.5, 0)
+                InsertBillboard.Size = UDim2.new(0, 250, 0, 15)
+                InsertBillboard.AlwaysOnTop = true
+                InsertBillboard.Adornee = Item
+        
+                InsertText.Size = UDim2.new(0, 250, 0, 15)
+                InsertText.BackgroundTransparency = 1
+                InsertText.TextColor3 = ESPColor
+                InsertText.TextScaled = true
+                InsertText.TextTransparency = .3
+                InsertText.TextStrokeColor3 = Color3.new(0, 0, 0)
+                InsertText.TextStrokeTransparency = 0
+                InsertText.Text = ToolName
+        
+                HandleAdornment.Adornee = Item:WaitForChild("hitbox")
+                HandleAdornment.Size = Item:WaitForChild("hitbox").Size
+                HandleAdornment.AdornCullingMode = Enum.AdornCullingMode.Never
+                HandleAdornment.AlwaysOnTop = true
+                HandleAdornment.ZIndex = 0
+                HandleAdornment.Transparency = 0.75
+                HandleAdornment.Color3 = ESPColor
+                table.insert(changecolor, HandleAdornment)
+                table.insert(changecolor, InsertText)
+        
+                Item.AncestryChanged:Connect(function(child, parent)
+                    if not parent then
+                        EspFolder:Destroy()
+                    end
+                end)
+            end
+        end
+    end
+end
+
+local function MakeESPItems(plr, Folder)
+    local plrcharacter = plr.Character or plr.CharacterAdded:Wait()
+    local plrhead = plrcharacter:WaitForChild("Head")
+    local plrhumanoidrootpart = plrcharacter:WaitForChild("HumanoidRootPart")
+    local plrhumanoid = plrcharacter:WaitForChild("Humanoid")
+    local plrfolder = Instance.new("Folder", Folder)
+    plrfolder.Name = plr.Name
+    if plr ~= LocalPlayer then
+        if plrcharacter and plrhumanoidrootpart and plrhead and plrhumanoid then
+            for i,v in pairs(plrcharacter:GetChildren()) do
+                if v:IsA("BasePart") then
+                    if identifyexecutor() == "macsploit is the best fucking exploit ever made." then
+                        local front = Instance.new("SurfaceGui")
+                        local back = Instance.new("SurfaceGui")
+                        local left = Instance.new("SurfaceGui")
+                        local right = Instance.new("SurfaceGui")
+                        local top = Instance.new("SurfaceGui")
+                        local bottom = Instance.new("SurfaceGui")
+    
+                        local frontframe = Instance.new("Frame")
+                        local backframe = Instance.new("Frame")
+                        local leftframe = Instance.new("Frame")
+                        local rightframe = Instance.new("Frame")
+                        local topframe = Instance.new("Frame")
+                        local bottomframe = Instance.new("Frame")
+                        table.insert(nongaycolorchange, frontframe)
+                        table.insert(nongaycolorchange, backframe)
+                        table.insert(nongaycolorchange,leftframe)
+                        table.insert(nongaycolorchange, rightframe)
+                        table.insert(nongaycolorchange, topframe)
+                        table.insert(nongaycolorchange, bottomframe)
+    
+                        front.Parent = plrfolder
+                        front.Face = Enum.NormalId.Front
+                        front.ResetOnSpawn = false
+                        front.Adornee = v
+                        front.AlwaysOnTop = true
+    
+                        back.Parent = plrfolder
+                        back.Face = Enum.NormalId.Back
+                        back.ResetOnSpawn = false
+                        back.Adornee = v
+                        back.AlwaysOnTop = true
+    
+                        left.Parent = plrfolder
+                        left.Face = Enum.NormalId.Left
+                        left.ResetOnSpawn = false
+                        left.Adornee = v
+                        left.AlwaysOnTop = true
+    
+                        right.Parent = plrfolder
+                        right.Face = Enum.NormalId.Right
+                        right.ResetOnSpawn = false
+                        right.Adornee = v
+                        right.AlwaysOnTop = true
+    
+                        top.Parent = plrfolder
+                        top.Face = Enum.NormalId.Top
+                        top.ResetOnSpawn = false
+                        top.Adornee = v
+                        top.AlwaysOnTop = true
+    
+                        bottom.Parent = plrfolder
+                        bottom.Face = Enum.NormalId.Bottom
+                        bottom.ResetOnSpawn = false
+                        bottom.Adornee = v
+                        bottom.AlwaysOnTop = true
+    
+                        frontframe.Parent = front
+                        frontframe.Size = UDim2.new(1, 0, 1, 0)
+                        frontframe.BackgroundColor3 = Rayfield.Flags["ESPColorPicker"]["Color"]
+                        frontframe.BackgroundTransparency = 0.75
+    
+                        backframe.Parent = back
+                        backframe.Size = UDim2.new(1, 0, 1, 0)
+                        backframe.BackgroundColor3 = Rayfield.Flags["ESPColorPicker"]["Color"]
+                        backframe.BackgroundTransparency = 0.75
+    
+                        leftframe.Parent = left
+                        leftframe.Size = UDim2.new(1, 0, 1, 0)
+                        leftframe.BackgroundColor3 = Rayfield.Flags["ESPColorPicker"]["Color"]
+                        leftframe.BackgroundTransparency = 0.75
+    
+                        rightframe.Parent = right
+                        rightframe.Size = UDim2.new(1, 0, 1, 0)
+                        rightframe.BackgroundColor3 = Rayfield.Flags["ESPColorPicker"]["Color"]
+                        rightframe.BackgroundTransparency = 0.75
+    
+                        topframe.Parent = top
+                        topframe.Size = UDim2.new(1, 0, 1, 0)
+                        topframe.BackgroundColor3 = Rayfield.Flags["ESPColorPicker"]["Color"]
+                        topframe.BackgroundTransparency = 0.75
+    
+                        bottomframe.Parent = bottom
+                        bottomframe.Size = UDim2.new(1, 0, 1, 0)
+                        bottomframe.BackgroundColor3 = Rayfield.Flags["ESPColorPicker"]["Color"]
+                        bottomframe.BackgroundTransparency = 0.75
+
+                    else
+                        local HandleAdornment = Instance.new("BoxHandleAdornment", plrfolder)
+
+                        HandleAdornment.Adornee = v
+                        HandleAdornment.Size = v.Size
+                        HandleAdornment.AdornCullingMode = Enum.AdornCullingMode.Never
+                        HandleAdornment.AlwaysOnTop = true
+                        HandleAdornment.ZIndex = 0
+                        HandleAdornment.Transparency = 0.75
+                        HandleAdornment.Color3 = Rayfield.Flags["ESPColorPicker"]["Color"]
+                        table.insert(changecolor, HandleAdornment)
+                    end
+                end
+            end
+            if nametagsesp == true then
+                local InsertBillboard = Instance.new("BillboardGui", plrfolder)
+                local InsertText = Instance.new("TextLabel", InsertBillboard)
+    
+                InsertBillboard.ExtentsOffset = Vector3.new(0, 2, 0)
+                InsertBillboard.Size = UDim2.new(0, 250, 0, 15)
+                InsertBillboard.AlwaysOnTop = true
+                InsertBillboard.Adornee = plrhead
+        
+                InsertText.Size = UDim2.new(0, 250, 0, 15)
+                InsertText.BackgroundTransparency = 1
+                InsertText.TextColor3 = ESPColor
+                InsertText.TextScaled = true
+                InsertText.TextTransparency = .3
+                InsertText.TextStrokeColor3 = Color3.new(0, 0, 0)
+                InsertText.TextStrokeTransparency = 0
+                RunService.Heartbeat:Connect(function()
+                    local distance = (plrhumanoidrootpart.CFrame.Position - HumanoidRootPart.CFrame.Position).Magnitude
+                    if plrcharacter and plrhumanoidrootpart then
+                        if showhealth == true and showdistance == true then
+                            InsertText.Text = plr.Name .. " " .. tostring(math.floor(plrhumanoid.Health)) .. " " .. tostring(math.floor(tonumber(distance))) .. " Studs"
+                        else
+                               if showdistance == true then
+                                InsertText.Text = plr.Name .. " " .. tostring(math.floor(tonumber(distance))) .. " Studs"
+                            else
+                                if showhealth == true then
+                                    InsertText.Text = plr.Name .. " " .. tostring(math.floor(plrhumanoid.Health))
+                                else
+                                    InsertText.Text = plr.Name
+                                end
+                            end
+                        end
+                    end
+                end)
+                table.insert(changecolor, InsertText)
+                table.insert(tagstoupdate, InsertText)
+            end
+            plrhumanoidrootpart.AncestryChanged:Connect(function(child, parent)
+                if not parent then
+                    plrfolder:Destroy()
+                end
+            end)
+        end
+    end
+end
+
+local function updateespcolor(Color, ggggaymode)
+    ESPColor = Color
+    for i,v in pairs(changecolor) do
+        if v:IsA("BoxHandleAdornment") then
+            v.Color3 = Color
+        end
+        if v:IsA("TextLabel") then
+            v.TextColor3 = Color
+        end
+        if v:IsA("Frame") then
+            v.BackgroundColor3 = Color
+        end
+    end
+    if ggggaymode == false then
+        for i,v in pairs(nongaycolorchange) do
+            v.BackgroundColor3 = Color
+        end
+    end
+end
+
+-----------------------------------------------------------------------------------
+-- Modules
+
+local function getClosestPlayerToMouseUnitVector(arter)
+    local mouseLocation = uis:GetMouseLocation()
+    local closestPlayer = nil
+    local closestDistance = maxDistance
+
+    for _, player in pairs(Players:GetPlayers()) do
+        if player ~= LocalPlayer then
+            if player.Character and player.Character:FindFirstChild("Head") then
+                local head = player.Character.Head
+                local distance = getDistanceFromMouseToPart(mouseLocation, head)
+                if distance < closestDistance then
+                    closestDistance = distance
+                    closestPlayer = player
+                end
+            end
+        end
+    end
+    print(closestPlayer)
+    if closestPlayer == nil then
+        return nil
+    else
+        return (closestPlayer.Character.HumanoidRootPart.CFrame.Position - arter.Main.Position).Unit
+    end
+end
+
+local function CreatePrinterCrateESP()
+    PrinterCrateFolder = Instance.new("Folder", coregui)
+    PrinterCrateFolder.Name = "PrinterCrateFolder"
+    PrinterCrateESP = true
+
+    for i, PossibleTarget in pairs(workspace.Entities:GetChildren()) do
+        makeprinteresp(PossibleTarget)
+    end
+end
+
+local function CreateItemESP()
+    ItemESPFolder = Instance.new("Folder", coregui)
+    ItemESPFolder.Name = "ItemESPFolder"
+    
+    for i,v in pairs(workspace.Entities:GetChildren()) do
+        makeitemespitems(v, ItemESPFolder, false)
+    end
+end
+
+local function CreatePlayerESP()
+    PlayerESPFolder = Instance.new("Folder", coregui)
+    PlayerESPFolder.Name = "PlayerESPFolder"
+
+    for i,v in pairs(Players:GetPlayers()) do
+        if v ~= LocalPlayer then
+            MakeESPItems(v, PlayerESPFolder)
+        end
+    end
+end
+
+local function VoidCar()
+    if IfLocalPlayerIsInCar(false) == true then
+        if HumanoidRootPart then
+            local oldpos = HumanoidRootPart.CFrame
+            IfLocalPlayerIsInCar(true):SetPrimaryPartCFrame(CFrame.new(71.67208862304688, -94.261329650878906, 800.639015197753906))
+            wait(2)
+            ExitVehicle()
+            repeat
+                Humanoid.Jump = true
+                task.wait()
+            until Humanoid.Sit == false
+            HumanoidRootPart.CFrame = oldpos
+        else
+            notify("Error", "HumanoidRootPart not found", 12797872879, 5)
+        end
+    else
+        notify("Error", "Must be in driver seat of a vehicle", 12797872879, 5)
+    end
+end
+
+local function LoopvoidCars()
+    while repeatvoiding == true do
+        print("looking for new cars")
+        for i,v in pairs(PlayerVehicles:GetChildren()) do
+            if repeatvoiding == true then
+                if not (ignoreeventcars == true and itemlist[v.Name]["EventItem"] == true) then
+                    print(v)
+                    if v:FindFirstChild("VehicleSeat") then
+                        if v.VehicleSeat.Occupant == nil and v.VehicleSeat:WaitForChild("Towed").Value == false then
+                            if not table.find(voidedcars, v) then
+                                if HumanoidRootPart then
+                                    v.VehicleSeat:Sit(Humanoid)
+                                    repeat task.wait() until Humanoid.Sit == true
+                                    local counter = 10
+                                    for i = counter, 0, -1 do
+                                        v:SetPrimaryPartCFrame(CFrame.new(71.67208862304688, -64.261329650878906, 800.639015197753906))
+                                        task.wait(0.1)
+                                    end
+                                    wait(1)
+                                    repeat
+                                        game.Players.LocalPlayer.Character.Humanoid.Jump = true
+                                        wait(0.0001)
+                                    until Char.Humanoid.Sit == false
+                                    HumanoidRootPart.CFrame = CFrame.new(71.67208862304688, -34.261329650878906, 55.639015197753906)
+                                    table.insert(voidedcars, v)
+                                else
+                                    notify("Error", "HumanoidRootPart not found", 12797872879, 5)
+                                end
+                            end
+                        end
+                    end
+                end
+            else
+                break
+            end
+        end
+        task.wait()
+        if HumanoidRootPart then
+            if repeatvoiding == true then
+                HumanoidRootPart.CFrame = CFrame.new(71.67208862304688, -34.261329650878906, 55.639015197753906)
+            else
+                HumanoidRootPart.Anchored = true
+                HumanoidRootPart.CFrame = cachedposition
+                task.wait()
+                HumanoidRootPart.Anchored = false
+            end
+        else
+            notify("Error", "HumanoidRootPart not found", 12797872879, 5)
+        end
+    end
+end
+
+local function GrabCar()
+    local availablecars = {}
+    cachedposition = HumanoidRootPart.CFrame
+    for i,v in pairs(PlayerVehicles:GetChildren()) do
+        if v:FindFirstChild("VehicleSeat")then
+            if v.VehicleSeat:FindFirstChild("Damage") and v.VehicleSeat:FindFirstChild("Fuel") then
+                if v.VehicleSeat.Damage.Value >= 500 and v.VehicleSeat.Fuel.Value >= 50 then
+                    if v.VehicleSeat.Occupant == nil then
+                        table.insert(availablecars, v)
+                    end
+                end
+            end
+        end
+    end
+    if availablecars[1] then
+        availablecars[1].VehicleSeat:Sit(Humanoid)
+        local counter = 2
+        for i = counter, 0, -1 do
+            availablecars[1]:SetPrimaryPartCFrame(cachedposition)
+            task.wait(0.5)
+        end
+        cachedposition = CFrame.new()
+    else
+        notify("Error", "No Avalible car has been found", 12797872879, 5)
+    end
+end
+
+local function enableallcarseats(ToggleValue)
+    for i,v in pairs(PlayerVehicles:GetChildren()) do
+        if v:FindFirstChild("VehicleSeat") then
+            v.VehicleSeat.Disabled = not ToggleValue
+        end
+        for i, seats in pairs(v.Body:GetChildren()) do
+            if seats:IsA("Seat") then
+                seats.Disabled = not ToggleValue
+            end
+        end
+    end
+end
+
+local function disablespread(gun, firefunction)
+    local accuracy = itemlist[gun.Name]["Accuracy"]
+    for i,v in pairs(debug.getupvalues(firefunction)) do
+        if v == accuracy then                                
+            debug.setupvalue(firefunction, i, 0)
+            if not table.find(AccuracyTable, firefunction) then
+                table.insert(AccuracyTable, firefunction)
+            end
+        end
+    end
+end
+
+local function applysilentaim(tool, script)
+    local senv = getsenv(script)
+    if isfunctionhooked(senv.Fire) == false then
+        local oldhook
+        oldhook = hookfunction(senv.Fire, function(...)
+            local args = {...}
+            local ajwi
+            ajwi = getClosestPlayerToMouseUnitVector(tool)
+            print(ajwi)
+            if ajwi and SilentAimLegitToggle == true then
+                args[1] = ajwi
+            end
+            print(args[1])
+            return oldhook(unpack(args))
+        end)
+        table.insert(hookedfunctions, oldhook)
+    end
+end
+
+local function HitBoxExpander()
+    for i,v in pairs(Players:GetPlayers()) do
+        if v ~= LocalPlayer then
+            if v.Character:FindFirstChild(ExpandPart) then
+                local parttoexpand = v.Character:FindFirstChild(ExpandPart)
+                local parttoreflectsize = Char:WaitForChild(ExpandPart)
+                parttoexpand.Size = Vector3.new(parttoreflectsize.Size.X * HitBoxSliderValue, parttoreflectsize.Size.Y * HitBoxSliderValue, parttoreflectsize.Size.Z * HitBoxSliderValue)
+            end
+        end
+    end
+end
+
+local function hitboxshrinker()
+    for i,v in pairs(Players:GetPlayers()) do
+        if v ~= LocalPlayer then
+            if v.Character:FindFirstChild(ExpandPart) then
+                local parttoexpand = v.Character:FindFirstChild(ExpandPart)
+                local parttoreflectsize = Char:FindFirstChild(ExpandPart)
+                parttoexpand.Size = Vector3.new(parttoreflectsize.Size)
+            end
+        end
+    end
+end
+
+--create ui elements
+local Window = Rayfield:CreateWindow({
+    Name = "Anomic Vanguard V.999",
+    LoadingTitle = "Anomic Vanguard V.999",
+    LoadingSubtitle = "by Frostfire and Magic",
+    ConfigurationSaving = {
+       Enabled = true,
+       FolderName = "Anomic Vanguard", -- Create a custom folder for your hub/game
+       FileName = "Anomic Vanguard v.999"
+    },
+    Discord = {
+       Enabled = true,
+       Invite = "SandHqNdHw",
+       RememberJoins = true -- Set this to false to make them join the discord every time they load it up
+    },
+    KeySystem = false, -- Set this to true to use our key system
+    KeySettings = {
+       Title = "Untitled",
+       Subtitle = "Key System",
+       Note = "No method of obtaining the key is provided",
+       FileName = "Key", -- It is recommended to use something unique as other scripts using Rayfield may overwrite your key file
+       SaveKey = true, -- The user's key will be saved, but if you change the key, they will be unable to use your script
+       GrabKeyFromSite = false, -- If this is true, set Key below to the RAW site you would like Rayfield to get the key from
+       Key = {"Hello"} -- List of keys that will be accepted by the system, can be RAW file links (pastebin, github etc) or simple strings ("hello","key22")
+    }
+ })
+
+local CombatTab = Window:CreateTab("Combat")
+
+if hookfunctiontest() == true then
+    CombatTab:CreateSection("Silent Aim(Only shows up for executers which support it)")
+
+    silentaimrangeslider = CombatTab:CreateSlider({
+        Name = "Silent Aim Range",
+        Range = {100, 600},
+        Increment = 50,
+        Suffix = "Range",
+        CurrentValue = 100,
+        Flag = "SilentAimRange",
+        Callback = function(Value)
+            maxDistance = Value
+            if rangeFrame then
+                rangeFrame.Size = UDim2.new(0, maxDistance * 2, 0, maxDistance * 2)
+            end
+        end
+     })
+
+    CombatTab:CreateToggle({
+        Name = "Silent Aim Legit",
+        Default = false,
+        Flag = "SilentAimLegit",
+        Callback = function(Value)
+            SilentAimLegitToggle = Value
+            if Value == true then
+                SilentAimCircle.Enabled = true
+                local possibletool
+                for i,v in pairs(Char:GetChildren()) do
+                    if v:IsA("Tool") then
+                        possibletool = v
+                    end
+                end
+                if possibletool then
+                    if possibletool:FindFirstChild("MainGunScript") then
+                        local script = possibletool.MainGunScript
+                        applysilentaim(possibletool, script)
+                    end
+                end
+            else
+                SilentAimCircle.Enabled = false
+            end
+        end
+    })
+end
+
+if hookfunctiontest() == true then
+    CombatTab:CreateSection("Gun Mods(Only shows up for executers which support it)")
+
+    CombatTab:CreateToggle({
+        Name = "Remove Gun Spread",
+        Default = false,
+        Flag = "DisableGunSpread",
+        Callback = function(Value)
+            RemoveGunSpreadToggle = Value
+            print("gunspreadtoggle is", Value)
+            if Value == true then
+                local possibletool
+                for i,v in pairs(Char:GetChildren()) do
+                    if v:IsA("Tool") then
+                        possibletool = v
+                    end
+                end
+                if possibletool then
+                    print(possibletool.Name .. " Has been found")
+                    if possibletool:FindFirstChild("MainGunScript") then
+                        applysilentaim(possibletool, possibletool.MainGunScript)
+                        print("Silent aim has been applied")
+
+                        for i,v in pairs(hookedfunctions) do
+                            local upvalues = debug.getupvalues(v)
+                            local gun
+                            
+                            for i,v in pairs(upvalues) do
+                                if typeof(v) == "Instance" then
+                                    if v:IsA("Model") then
+                                        gun = v
+                                    end
+                                end
+                            end
+                            local index = (table.find(upvalues, itemlist[gun.Name]["Accuracy"]))
+                            if index then
+                                debug.setupvalue(v, index, 0)
+                            end
+                        end
+                    end
+                end
+            else
+                for i,v in pairs(hookedfunctions) do
+                    local upvalues = debug.getupvalues(v)
+                    local index = (table.find(upvalues, 0))
+                    local gun
+                    
+                    for i,v in pairs(upvalues) do
+                        if typeof(v) == "Instance" then
+                            if v:IsA("Model") then
+                                gun = v
+                            end
+                        end
+                    end
+
+                    if index then
+                        debug.setupvalue(v, index, itemlist[gun.Name]["Accuracy"])
+                    end
+                end
+            end
+        end
+    })
+
+    CombatTab:CreateToggle({
+        Name = "Auto Reload Shotgun",
+        Default = false,
+        Flag = "AutoReloadShotgun",
+        Callback = function(Value)
+            AutoReloadShotgunToggle = Value
+        end
+    })
+else
+    CombatTab:CreateSection("Gun Mods")
+
+    CombatTab:CreateToggle({
+        Name = "Auto Reload Shotgun",
+        Default = false,
+        Flag = "AutoReloadShotgun",
+        Callback = function(Value)
+            AutoReloadShotgunToggle = Value
+        end
+    })
+end
+
+CombatTab:CreateSection("Hitbox Expander")
+
+local ExpandSlider = CombatTab:CreateSlider({
+    Name = "Expand Amount",
+    Range = {1, 20},
+    Increment = 0.25,
+    Suffix = "x",
+    CurrentValue = 1,
+    Flag = "HitBoxSlider",
+    Callback = function(Value)
+        HitBoxSliderValue = Value
+        if HitboxToggle == true then
+            HitBoxExpander()
+        end
+    end
+})
+
+local expandpartdropdown = CombatTab:CreateDropdown({
+    Name = "Expand Part",
+    Options = bodyparts,
+    CurrentOption = {"Head"},
+    MultipleOptions = false,
+    Flag = "ExpandPart", -- A flag is the identifier for the configuration file, make sure every element has a different flag if you're using configuration saving to ensure no overlaps
+    Callback = function(Option)
+        ExpandPart = Option[1]
+    end
+})
+
+CombatTab:CreateToggle({
+    Name = "Expand",
+    Default = false,
+    Flag = "Hitboxes",
+    Callback = function(Value)
+        HitboxToggle = Value
+        if Value == true then
+            HitBoxExpander()
+        else
+            hitboxshrinker()
+        end
+    end
+})
+
+local CarTab = Window:CreateTab("Vehicle")
+
+local VoidCarSection = CarTab:CreateSection("Void Car")
+
+CarTab:CreateButton({
+	Name = "Void Current Vehicle",
+	Callback = function()
+	    VoidCar()
+	end
+})
+
+local LoopCarVoid = CarTab:CreateSection("Loop Void Car")
+
+CarTab:CreateToggle({
+    Name = "Loop Void Cars",
+    Default = false,
+    Callback = function(Value)
+        repeatvoiding = Value
+        print("Loop void cars is " .. tostring(repeatvoiding))
+        if Value == true then
+            if HumanoidRootPart then
+                cachedposition = Char.HumanoidRootPart.CFrame
+                LoopvoidCars()
+            else
+                notify("Error", "HumanoidRootPart not found", 12797872879, 5)
+            end
+        end
+    end
+})
+
+CarTab:CreateToggle({
+    Name = "Ignore Event Cars",
+    Default = false,
+    Flag = "IgnoreEvents",
+    Callback = function(Value)
+        ignoreeventcars = Value
+    end
+})
+
+local CarStealingSelection = CarTab:CreateSection("Car Stealing")
+
+CarTab:CreateToggle({
+    Name = "Bypass Locked Car",
+    Default = false,
+    Flag = "BypassCarLock",
+    Callback = function(Value)
+        CarLockBypass = Value
+    end
+})
+
+CarTab:CreateToggle({
+    Name = "Enable All Seats",
+    Default = false,
+    Flag = "EnableAllCarSeats",
+    Callback = function(Value)
+        EnableSeats = Value
+        enableallcarseats(Value)
+    end
+})
+
+CarTab:CreateButton({
+    Name = "Grab Car",
+    Callback = function()
+        GrabCar()
+    end
+})
+
+local ESPTab = Window:CreateTab("ESP")
+
+ESPTab:CreateSection("Choose Color")
+
+local ESPColorValue = ESPTab:CreateColorPicker({
+    Name = "ESP Color",
+    Color = Color3.fromRGB(255,255,255),
+    Flag = "ESPColorPicker", -- A flag is the identifier for the configuration file, make sure every element has a different flag if you're using configuration saving to ensure no overlaps
+    Callback = function(Value)
+        updateespcolor(Value, false)
+    end
+})
+
+ESPTab:CreateToggle({
+    Name = "Gay Mode",
+    Default = false,
+    Flag = "GayMode",
+    Callback = function(Value)
+        gaymode = Value
+        if Value == true then
+            Hue = 0
+        end
+        if Value == false then
+            updateespcolor(Rayfield.Flags["ESPColorPicker"]["Color"])
+        end
+        while gaymode == true do
+            if Hue < 1 then
+                Hue = Hue + 0.005
+            else
+                Hue = 0
+            end
+            updateespcolor(Color3.fromHSV(Hue,1,1), true)
+            task.wait()
+        end
+    end
+})
+
+ESPTab:CreateSection("Player ESP")
+
+local PlayerESPButton =ESPTab:CreateToggle({
+    Name = "Player ESP",
+    Default = false,
+    Flag = "PlayerESP",
+    Callback = function(Value)
+        ESPColor = Rayfield.Flags["ESPColorPicker"]["Color"]
+        PlayerESPToggle = Value
+        if Value == true then
+            CreatePlayerESP()
+            if identifyexecutor() == "macsploit is the best fucking exploit ever made." then
+                if gaymode == true then
+                    notify("Error", "Gay Mode is not supported for player esp on your executer.", 12797872879, 5)
+                end
+            end
+        else
+            PlayerESPFolder:Destroy()
+        end
+    end
+})
+
+ESPTab:CreateToggle({
+    Name = "Show Nametags",
+    Default = false,
+    Flag = "ShowNametags",
+    Callback = function(Value)
+        nametagsesp = Value
+        if PlayerESPButton.CurrentValue == true then
+            PlayerESPFolder:Destroy()
+            CreatePlayerESP()
+        end
+    end
+})
+
+ESPTab:CreateToggle({
+    Name = "Show Health",
+    Default = false,
+    Flag = "ShowHealth",
+    Callback = function(Value)
+        showhealth = Value
+    end
+})
+
+ESPTab:CreateToggle({
+    Name = "Show Distance",
+    Default = false,
+    Flag = "ShowDistance",
+    Callback = function(Value)
+        showdistance = Value
+    end
+})
+
+ESPTab:CreateSection("Entity ESP")
+
+ESPTab:CreateToggle({
+    Name = "Printer/Crate ESP",
+    Default = false,
+    Flag = "PrinterESP",
+    Callback = function(Value)
+        ESPColor = Rayfield.Flags["ESPColorPicker"]["Color"]
+        if Value == true then
+            CreatePrinterCrateESP()
+        else
+            PrinterCrateFolder:Destroy()
+            PrinterCrateESP = false
+        end
+    end
+})
+
+ESPTab:CreateToggle({
+    Name = "Item ESP",
+    Default = false,
+    Flag = "ItemESP",
+    Callback = function(Value)
+        ESPColor = Rayfield.Flags["ESPColorPicker"]["Color"]
+        ItemESPToggle = Value
+        if Value == true then
+            CreateItemESP()
+        else
+            ItemESPFolder:Destroy()
+        end
+    end
+})
+
+local Misc = Window:CreateTab("Misc")
+
+local AntiAdmin = Misc:CreateSection("Anti-Admin")
+
+Misc:CreateToggle({
+    Name = "Alert When Admin Joins",
+    Default = false,
+    Flag = "AlertAdmin",
+    Callback = function(Value)
+        AlertonAdmin = Value
+        if Value == true then
+            for i,v in pairs(Players:GetPlayers()) do
+                local newcoroutine = coroutine.create(function()
+                    if v:IsInGroup(7638348) then
+                        notify("Admin Alert", v.Name .. " is in your game!", Players:GetUserThumbnailAsync(v.UserId, Enum.ThumbnailType.HeadShot, Enum.ThumbnailSize.Size420x420), 5)
+                    end
+                end)
+                coroutine.resume(newcoroutine)
+            end
+        end
+    end
+})
+Misc:CreateToggle({
+    Name = "Kick When Admin Joins",
+    Default = false,
+    Flag = "KickAdmin",
+    Callback = function(Value)
+        KickonAdmin = Value
+        for i,v in pairs(Players:GetPlayers()) do
+            local newcoroutine = coroutine.create(function()
+                if v:IsInGroup(7638348) then
+                    LocalPlayer:Kick(v.Name .. " was in your game!")
+                end
+            end)
+            coroutine.resume(newcoroutine)
+        end
+    end
+})
+
+--runspace
+
+
+
+for i,v in pairs(Char:GetChildren()) do
+    if v:IsA("BasePart") then
+        table.insert(bodyparts, v.Name)
+    end
+end
+
+expandpartdropdown:Set(bodyparts)
+
+if maxDistance == nil then
+    maxDistance = silentaimrangeslider.CurrentValue
+end
+
+SilentAimCircle.Enabled = false
+rangeFrame = Instance.new("Frame", SilentAimCircle)
+
+rangeFrame.Size = UDim2.new(0, maxDistance * 2, 0, maxDistance * 2)
+rangeFrame.AnchorPoint = Vector2.new(0.5, 0.5)
+rangeFrame.BackgroundTransparency = 1
+rangeFrame.BackgroundColor3 = Color3.fromRGB(0, 0, 0)
+rangeFrame.BorderSizePixel = 10
+
+local uiCorner = Instance.new("UICorner", rangeFrame)
+uiCorner.CornerRadius = UDim.new(1, 0)
+
+local uistroke = Instance.new("UIStroke", rangeFrame)
+uistroke.Thickness = 1
+
+RunService.RenderStepped:Connect(updateRangeFrame)
+
+LocalPlayer.CharacterAdded:Connect(updateCharacterReferences)
+
+RunService.Heartbeat:Connect(function()
+    if RemoveGunSpreadToggle == true then
+        for i,v in pairs(hookedfunctions) do
+            local upvalues = debug.getupvalues(v)
+            local gun
+            
+            for i,v in pairs(upvalues) do
+                if typeof(v) == "Instance" then
+                    if v:IsA("Model") then
+                        gun = v
+                    end
+                end
+            end
+            local index = (table.find(upvalues, itemlist[gun.Name]["Accuracy"]))
+            if index then
+                debug.setupvalue(v, index, 0)
+            end
+        end
+    else
+        for i,v in pairs(hookedfunctions) do
+            local upvalues = debug.getupvalues(v)
+            local index = (table.find(upvalues, 0))
+            local gun
+            
+            for i,v in pairs(upvalues) do
+                if typeof(v) == "Instance" then
+                    if v:IsA("Model") then
+                        gun = v
+                    end
+                end
+            end
+
+            if index then
+                debug.setupvalue(v, index, itemlist[gun.Name]["Accuracy"])
+            end
+        end
+    end
+end)
+
+Players.PlayerAdded:Connect(function(player)
+    if player:IsInGroup(7638348) then
+        if AlertonAdmin == true then
+            notify("Admin Alert", player.Name .. " has joined your game!", Players:GetUserThumbnailAsync(player.UserId, Enum.ThumbnailType.HeadShot, Enum.ThumbnailSize.Size420x420), 5)
+        end
+        if KickonAdmin == true then
+            LocalPlayer:Kick(player.Name .. " Has Joined you")
+        end
+    end
+end)
+
+PlayerVehicles.ChildAdded:Connect(function(newcar)
+    if itemlist[newcar.Name]["DataType"] == "Vehicle" then
+        newcar:WaitForChild("VehicleSeat").Disabled = not EnableSeats
+        for i,v in pairs(newcar:WaitForChild("Body"):GetChildren()) do
+            if v:IsA("Seat") then
+                v.Disabled = not EnableSeats
+            end
+        end
+    end
+end)
+
+uis.InputBegan:Connect(function(inputObj, gPE)
+    if Humanoid.Health > 0 then
+        if not gPE then
+            if inputObj.UserInputType == Enum.UserInputType.Keyboard then
+                if inputObj.KeyCode == Enum.KeyCode.E then
+                    for i,v in pairs(CS:GetTagged("BillboardGuis")) do
+                        if v:IsA("BillboardGui") then
+                            if v.Name =="Enter" then
+                                local magni = v.Enabled
+                                if magni == true then
+                                    if CarLockBypass == true then
+                                        sitinseat(v.Parent.Parent.Parent, v.Parent.Name)
+                                    end
+                                end
+                            end
+                        end
+                    end
+                end
+            end
+        end
+    end
+end)
+
+workspace.Entities.ChildAdded:Connect(function(PossibleTarget)
+    if PrinterCrateESP == true then
+        makeprinteresp(PossibleTarget)
+    end
+    if ItemESPToggle == true then
+        makeitemespitems(PossibleTarget, ItemESPFolder, true)
+    end
+end)
+
+for i,v in pairs(game.Players:GetPlayers()) do
+	v.CharacterAdded:Connect(function()
+		if PlayerESPToggle == true then
+			MakeESPItems(v, PlayerESPFolder)
+		end
+	end)
+end
+
+Players.PlayerAdded:Connect(function(v)
+	v.CharacterAdded:Connect(function()
+		if PlayerESPToggle == true then
+			MakeESPItems(v, PlayerESPFolder)
+		end
+	end)
+end)
+
+Char.ChildAdded:Connect(function(child)
+    if child:IsA('Tool') then
+        if child:FindFirstChild("MainGunScript") then
+            local script = child.MainGunScript
+            applysilentaim(child, script)
+        end
+    end
+end)
+
+Char.ChildAdded:Connect(function(child)
+    if child:IsA("Tool") then
+        if itemlist[child.Name]["AmmoType"] == "12 Gauge" then
+            child:WaitForChild("MainGunScript"):WaitForChild("FireEvent").Event:Connect(function()
+                if AutoReloadShotgunToggle == true then
+                    local script = child:WaitForChild("MainGunScript")
+                    local events = game:GetService("ReplicatedStorage"):WaitForChild("_CS.Events")
+                    events.WeaponServer:FireServer("Reload", script.Parent.Handle, script.Parent.Name, 0,nil,0,game.ReplicatedStorage.ServerRunTime.Value)
+                end
+            end)
+        end
+    end
+end)
+
+if not ExpandPart then
+    ExpandPart = ExpandSlider.CurrentValue
+end
+
+for i,v in pairs(Players:GetPlayers()) do
+    if v ~= LocalPlayer then
+        v.CharacterAdded:Connect(function(character)
+            if HitboxToggle == true then
+                if character:FindFirstChild(ExpandPart) then
+                    local parttoexpand = character:FindFirstChild(ExpandPart)
+                    local parttoreflectsize = Char:FindFirstChild(ExpandPart)
+                    parttoexpand.Size = Vector3.new(parttoreflectsize.Size)
+                end
+            end
+        end)
+    end
+end
+
+Players.PlayerAdded:Connect(function(v)
+    v.CharacterAdded:Connect(function(character)
+        if HitboxToggle == true then
+            if character:FindFirstChild(ExpandPart) then
+                local parttoexpand = character:FindFirstChild(ExpandPart)
+                local parttoreflectsize = Char:FindFirstChild(ExpandPart)
+                parttoexpand.Size = Vector3.new(parttoreflectsize.Size)
+            end
+        end
+    end)
+end)
+
+LocalPlayer.CharacterAdded:Connect(function(character)
+    character.ChildAdded:Connect(function(child)
+        if child:IsA('Tool') then
+            if child:FindFirstChild("MainGunScript") then
+                local script = child.MainGunScript
+                applysilentaim(child, script)
+            end
+        end
+    end)
+    
+    character.ChildAdded:Connect(function(child)
+        if child:IsA("Tool") then
+            if itemlist[child.Name]["AmmoType"] == "12 Gauge" then
+                child:WaitForChild("MainGunScript"):WaitForChild("FireEvent").Event:Connect(function()
+                    if AutoReloadShotgunToggle == true then
+                        local script = child:WaitForChild("MainGunScript")
+                        local events = game:GetService("ReplicatedStorage"):WaitForChild("_CS.Events")
+                        events.WeaponServer:FireServer("Reload", script.Parent.Handle, script.Parent.Name, 0,nil,0,game.ReplicatedStorage.ServerRunTime.Value)
+                    end
+                end)
+            end
+        end
+    end)
+end)
