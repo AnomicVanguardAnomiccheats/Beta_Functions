@@ -51,7 +51,7 @@ local changecolor = {}
 local nongaycolorchange = {}
 local tagstoupdate = {}
 local hookedfunctions = {}
-local bodyparts = {}
+local bodyparts = {"HumanoidRootPart","RightHand","LeftLowerArm","RightLowerArm","LeftUpperArm","RightUpperArm","LowerTorso","RightUpperLeg","LeftFoot","LeftUpperLeg","LeftLowerLeg","RightFoot","UpperTorso","RightLowerLeg","Head","LeftHand"}
 local expandedparts = {}
 
 local function updateCharacterReferences()
@@ -669,23 +669,22 @@ end
 local function HitBoxExpander()
     for i,v in pairs(Players:GetPlayers()) do
         if v ~= LocalPlayer then
-            if v.Character:FindFirstChild(ExpandPart) then
-                local parttoexpand = v.Character:FindFirstChild(ExpandPart)
+            local vCharacter = v.Character or v.CharacterAdded:Wait()
+            if vCharacter:FindFirstChild(ExpandPart) then
+                local parttoexpand = vCharacter:FindFirstChild(ExpandPart)
                 local parttoreflectsize = Char:WaitForChild(ExpandPart)
                 parttoexpand.Size = Vector3.new(parttoreflectsize.Size.X * HitBoxSliderValue, parttoreflectsize.Size.Y * HitBoxSliderValue, parttoreflectsize.Size.Z * HitBoxSliderValue)
+                table.insert(expandedparts, parttoexpand)
             end
         end
     end
 end
 
 local function hitboxshrinker()
-    for i,v in pairs(Players:GetPlayers()) do
-        if v ~= LocalPlayer then
-            if v.Character:FindFirstChild(ExpandPart) then
-                local parttoexpand = v.Character:FindFirstChild(ExpandPart)
-                local parttoreflectsize = Char:FindFirstChild(ExpandPart)
-                parttoexpand.Size = Vector3.new(parttoreflectsize.Size)
-            end
+    for i,expandedpart in pairs(expandedparts) do
+        if expandedpart then
+            local parttoreflectsize = Char:FindFirstChild(expandedpart.Name)
+            expandedpart.Size = parttoreflectsize.Size
         end
     end
 end
@@ -873,6 +872,10 @@ local expandpartdropdown = CombatTab:CreateDropdown({
     Flag = "ExpandPart", -- A flag is the identifier for the configuration file, make sure every element has a different flag if you're using configuration saving to ensure no overlaps
     Callback = function(Option)
         ExpandPart = Option[1]
+        if HitboxToggle == true then
+            hitboxshrinker()
+            HitBoxExpander()
+        end
     end
 })
 
@@ -1118,17 +1121,16 @@ Misc:CreateToggle({
     end
 })
 
---runspace
+Misc:CreateSection("Discord")
 
-
-
-for i,v in pairs(Char:GetChildren()) do
-    if v:IsA("BasePart") then
-        table.insert(bodyparts, v.Name)
+Misc:CreateButton({
+    Name = "Copy Discord Invite",
+    Callback = function()
+        setclipboard("https://discord.gg/JcgBBKq8Q2")
     end
-end
+})
 
-expandpartdropdown:Set(bodyparts)
+--runspace
 
 if maxDistance == nil then
     maxDistance = silentaimrangeslider.CurrentValue
@@ -1293,11 +1295,10 @@ for i,v in pairs(Players:GetPlayers()) do
     if v ~= LocalPlayer then
         v.CharacterAdded:Connect(function(character)
             if HitboxToggle == true then
-                if character:FindFirstChild(ExpandPart) then
-                    local parttoexpand = character:FindFirstChild(ExpandPart)
-                    local parttoreflectsize = Char:FindFirstChild(ExpandPart)
-                    parttoexpand.Size = Vector3.new(parttoreflectsize.Size)
-                end
+                local parttoexpand = character:WaitForChild(ExpandPart)
+                local parttoreflectsize = Char:FindFirstChild(ExpandPart)
+                parttoexpand.Size = Vector3.new(parttoreflectsize.Size.X * HitBoxSliderValue, parttoreflectsize.Size.Y * HitBoxSliderValue, parttoreflectsize.Size.Z * HitBoxSliderValue)
+                table.insert(expandedparts, parttoexpand)
             end
         end)
     end
@@ -1306,11 +1307,10 @@ end
 Players.PlayerAdded:Connect(function(v)
     v.CharacterAdded:Connect(function(character)
         if HitboxToggle == true then
-            if character:FindFirstChild(ExpandPart) then
-                local parttoexpand = character:FindFirstChild(ExpandPart)
-                local parttoreflectsize = Char:FindFirstChild(ExpandPart)
-                parttoexpand.Size = Vector3.new(parttoreflectsize.Size)
-            end
+            local parttoexpand = character:WaitForChild(ExpandPart)
+            local parttoreflectsize = Char:WaitForChild(ExpandPart)
+            parttoexpand.Size = Vector3.new(parttoreflectsize.Size.X * HitBoxSliderValue, parttoreflectsize.Size.Y * HitBoxSliderValue, parttoreflectsize.Size.Z * HitBoxSliderValue)
+            table.insert(expandedparts, parttoexpand)
         end
     end)
 end)
