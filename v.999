@@ -1413,7 +1413,9 @@ RunService.Heartbeat:Connect(function()
             end
             if HitscanGunsToggle == true then
                 local index = (table.find(upvalues, 700))
-                debug.setupvalue(v, index, 10000)
+                if index then
+                    debug.setupvalue(v, index, 10000)
+                end
             end
         end
     else
@@ -1527,6 +1529,7 @@ end)
 Char.ChildAdded:Connect(function(child)
     if child:IsA("Tool") then
         if itemlist[child.Name]["AmmoType"] == "12 Gauge" then
+            print(child)
             child:WaitForChild("MainGunScript"):WaitForChild("FireEvent").Event:Connect(function()
                 if AutoReloadShotgunToggle == true then
                     local script = child:WaitForChild("MainGunScript")
