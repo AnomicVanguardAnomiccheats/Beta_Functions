@@ -115,20 +115,20 @@ local function IfLocalPlayerIsInCar(returnVehicleObject)
 end
 
 local function WallCheck(GunPart, Target)
-    local direction = GunPart.Position - Target.Position
+    local direction = (Target.Character.HumanoidRootPart.Position - GunPart.Position).Unit * (Target.Character.HumanoidRootPart.Position - GunPart.Position).magnitude
+    local ray = Ray.new(GunPart.Position, direction)
 
     local params = RaycastParams.new()
     params.FilterType = Enum.RaycastFilterType.Blacklist
-    params.FilterDescendantsInstances = {workspace.RayIgnore}
+    params.FilterDescendantsInstances = {workspace.RayIgnore, Target.Character}
 
-    local raycastresult = workspace:Raycast(Target.Position, direction, params)
+    local raycastresult = workspace:Raycast(ray.Origin, ray.Direction, params)
     
-    if raycastresult and raycastresult.Instance then
-        if raycastresult.Instance == Target then
-            return true
-        else
-            return false
-        end
+    if raycastresult then
+        print(raycastresult.Instance)
+        return false
+    else
+        return true
     end
 end
 
@@ -500,7 +500,7 @@ local function getClosestPlayerToMouseUnitVector(arter)
                 local distance = getDistanceFromMouseToPart(mouseLocation, head)
                 if distance < closestDistance then
                     if SilentAimWallCheck == true then
-                        if WallCheck(arter.Main, player.Character.Head) == true then
+                        if WallCheck(arter.Main, player) == true then
                             closestDistance = distance
                             closestPlayer = player
                         end
