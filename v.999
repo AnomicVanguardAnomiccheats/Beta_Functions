@@ -44,6 +44,8 @@ local AutoReloadShotgunToggle
 local HitBoxSliderValue
 local ExpandPart
 local HitboxToggle
+local SilentAimWallCheck
+local HitscanGunsToggle
 
 local AccuracyTable = {}
 local voidedcars = {}
@@ -110,6 +112,20 @@ local function IfLocalPlayerIsInCar(returnVehicleObject)
         end
     end
     return false
+end
+
+local function WallCheck(GunPart, Target)
+    local direction = GunPart.Position - Target.Position
+
+    local raycastresult = workspace:Raycast(Target.Position, direction)
+    
+    if raycastresult and raycastresult.Instance then
+        if raycastresult.Instance == Target then
+            return true
+        else
+            return false
+        end
+    end
 end
 
 local function ExitVehicle()
@@ -479,8 +495,15 @@ local function getClosestPlayerToMouseUnitVector(arter)
                 local head = player.Character.Head
                 local distance = getDistanceFromMouseToPart(mouseLocation, head)
                 if distance < closestDistance then
-                    closestDistance = distance
-                    closestPlayer = player
+                    if SilentAimWallCheck == true then
+                        if WallCheck(arter.Main, player.Character.Head) == true then
+                            closestDistance = distance
+                            closestPlayer = player
+                        end
+                    else
+                        closestDistance = distance
+                        closestPlayer = player
+                    end
                 end
             end
         end
@@ -534,7 +557,10 @@ local function VoidCar()
                 Humanoid.Jump = true
                 task.wait()
             until Humanoid.Sit == false
+            HumanoidRootPart.Anchored = true
             HumanoidRootPart.CFrame = oldpos
+            task.wait()
+            HumanoidRootPart.Anchored = false
         else
             notify("Error", "HumanoidRootPart not found", 12797872879, 5)
         end
@@ -580,18 +606,6 @@ local function LoopvoidCars()
             end
         end
         task.wait()
-        if HumanoidRootPart then
-            if repeatvoiding == true then
-                HumanoidRootPart.CFrame = CFrame.new(71.67208862304688, -34.261329650878906, 55.639015197753906)
-            else
-                HumanoidRootPart.Anchored = true
-                HumanoidRootPart.CFrame = cachedposition
-                task.wait()
-                HumanoidRootPart.Anchored = false
-            end
-        else
-            notify("Error", "HumanoidRootPart not found", 12797872879, 5)
-        end
     end
 end
 
@@ -761,6 +775,15 @@ if hookfunctiontest() == true then
             end
         end
     })
+
+    CombatTab:CreateToggle({
+        Name = "Wallcheck",
+        Default = false,
+        Flag = "SilentAimWallCheck",
+        Callback = function(Value)
+            SilentAimWallCheck = Value
+        end
+    })
 end
 
 if hookfunctiontest() == true then
@@ -823,6 +846,15 @@ if hookfunctiontest() == true then
                     end
                 end
             end
+        end
+    })
+
+    CombatTab:CreateToggle({
+        Name = "Hitscan guns",
+        Default = false,
+        Flag = "HitscanGunMod",
+        Callback = function(Value)
+            HitscanGunsToggle = Value
         end
     })
 
@@ -916,6 +948,18 @@ CarTab:CreateToggle({
             if HumanoidRootPart then
                 cachedposition = Char.HumanoidRootPart.CFrame
                 LoopvoidCars()
+                if HumanoidRootPart then
+                    if repeatvoiding == true then
+                        HumanoidRootPart.CFrame = CFrame.new(71.67208862304688, -34.261329650878906, 55.639015197753906)
+                    else
+                        HumanoidRootPart.Anchored = true
+                        HumanoidRootPart.CFrame = cachedposition
+                        task.wait()
+                        HumanoidRootPart.Anchored = false
+                    end
+                else
+                    notify("Error", "HumanoidRootPart not found", 12797872879, 5)
+                end
             else
                 notify("Error", "HumanoidRootPart not found", 12797872879, 5)
             end
@@ -957,6 +1001,37 @@ CarTab:CreateButton({
     Name = "Grab Car",
     Callback = function()
         GrabCar()
+    end
+})
+
+CarTab:CreateSection("Torque(Made by Bonfire, all credits to him)")
+
+CarTab:CreateButton({
+    Name = "Torque(May cause you to lose control of your car)",
+    Callback = function()
+        local player = game.Players.LocalPlayer
+        local bodyfuck=Instance.new("BodyThrust", game:GetService("Players").LocalPlayer.Character.Humanoid.SeatPart.Parent:FindFirstChild("Engine"))
+        mouse.KeyDown:connect(function(key)
+            if key:byte() == 119 then
+                bodyfuck.force=Vector3.new(0,0,-6000)
+            end
+        end)
+        mouse.KeyUp:connect(function(key)
+            if key:byte() == 119 then
+                bodyfuck.force=Vector3.new(0,0,0)
+            end 
+        end)
+        local bodyfuck=Instance.new("BodyThrust", game:GetService("Players").LocalPlayer.Character.Humanoid.SeatPart.Parent:FindFirstChild("Engine"))
+        mouse.KeyDown:connect(function(key)
+            if key:byte() == 115 then
+                bodyfuck.force=Vector3.new(0,0,8000)
+            end
+        end)
+        mouse.KeyUp:connect(function(key)
+            if key:byte() == 115 then
+                bodyfuck.force=Vector3.new(0,0,0)
+            end
+        end)
     end
 })
 
@@ -1121,6 +1196,168 @@ Misc:CreateToggle({
     end
 })
 
+Misc:CreateSection("Printer Farm")
+
+Misc:CreateButton({
+    Name = "Load AV Printer Farm",
+    Callback = function()
+        if getgenv().AVPrinterFarm ~= true then
+            loadstring(game:HttpGet("https://pastebin.com/raw/pmjXqJGe"))()
+        else
+            notify("Printer Farm", "AV Printer Farm is Already Loaded!", nil, 5)
+        end
+    end
+})
+
+Misc:CreateSection("Teleports")
+
+Misc:CreateButton({
+    Name = "A Ghosts Perch",
+    Callback = function()
+        HumanoidRootPart.CFrame = CFrame.new(72.37035369873047, -34.261329650878906, 51.75856399536133)
+    end
+})
+
+Misc:CreateButton({
+    Name = "Perch",
+    Callback = function()
+        HumanoidRootPart.CFrame = CFrame.new(674.7874145507812, -20.560258865356445, -523.17138671875)
+    end
+})
+
+Misc:CreateButton({
+    Name = "Arway 1",
+    Callback = function()
+        HumanoidRootPart.CFrame = CFrame.new(1866.7083740234375, -66.07357788085938, -1335.4666748046875)
+    end
+})
+
+Misc:CreateButton({
+    Name = "Arway 2",
+    Callback = function()
+        HumanoidRootPart.CFrame = CFrame.new(1730.7430419921875, -65.57357788085938, -1475.6485595703125)
+    end
+})
+
+Misc:CreateButton({
+    Name = "Clinic",
+    Callback = function()
+        HumanoidRootPart.CFrame = CFrame.new(1601.44677734375, -65.42344665527344, -1407.5025634765625)
+    end
+})
+
+Misc:CreateButton({
+    Name = "Sheriff Station",
+    Callback = function()
+        HumanoidRootPart.CFrame = CFrame.new(1613.8572998046875, -62.92344284057617, -1269.5947265625)
+    end
+})
+
+Misc:CreateButton({
+    Name = "Las Hogueras",
+    Callback = function()
+        HumanoidRootPart.CFrame = CFrame.new(2249.167724609375, -33.38593673706055, -2497.864501953125)
+    end
+})
+
+Misc:CreateButton({
+    Name = "Eastdike",
+    Callback = function()
+        HumanoidRootPart.CFrame = CFrame.new(2912.79296875, -4.526552200317383, -3727.2900390625)
+    end
+})
+
+Misc:CreateButton({
+    Name = "Towing Company",
+    Callback = function()
+        HumanoidRootPart.CFrame = CFrame.new(373.6426086425781, -3.3234264850616455, -1777.729248046875)
+    end
+})
+
+Misc:CreateButton({
+    Name = "Pharump",
+    Callback = function()
+        HumanoidRootPart.CFrame = CFrame.new(-102.78692626953125, 9.6765718460083, 29.344724655151367)
+    end
+})
+
+Misc:CreateButton({
+    Name = "Ulmouth Park",
+    Callback = function()
+        HumanoidRootPart.CFrame = CFrame.new(739.949951171875, -20.655561447143555, -258.9692077636719)
+    end
+})
+
+Misc:CreateButton({
+    Name = "Eaphis Plateau",
+    Callback = function()
+        HumanoidRootPart.CFrame = CFrame.new(1783.2998046875, 77.75467681884766, 572.700927734375)
+    end
+})
+
+Misc:CreateButton({
+    Name = "Airfield",
+    Callback = function()
+        HumanoidRootPart.CFrame = CFrame.new(1783.2998046875, 77.75467681884766, 572.700927734375)
+    end
+})
+
+Misc:CreateButton({
+    Name = "Phester Dam",
+    Callback = function()
+        HumanoidRootPart.CFrame = CFrame.new(4476.01220703125, 124.789306640625, -2511.61572265625)
+    end
+})
+
+Misc:CreateButton({
+    Name = "Okbe Steppe",
+    Callback = function()
+        HumanoidRootPart.CFrame = CFrame.new(3821.12939453125, -3.1882855892181396, -3220.62646484375)
+    end
+})
+
+Misc:CreateButton({
+    Name = "Forestry",
+    Callback = function()
+        HumanoidRootPart.CFrame = CFrame.new(1637.832763671875, -51.80781173706055, -2669.25146484375)
+    end
+})
+
+Misc:CreateButton({
+    Name = "Printing Spot 1",
+    Callback = function()
+        HumanoidRootPart.CFrame = CFrame.new(3980.182861328125, -25.05780601501465, -1519.2491455078125)
+    end
+})
+
+Misc:CreateButton({
+    Name = "Printing Spot 2",
+    Callback = function()
+        HumanoidRootPart.CFrame = CFrame.new(4296.39599609375, -59.32343673706055, -1880.18115234375)
+    end
+})
+
+Misc:CreateButton({
+    Name = "Printing Spot 3",
+    Callback = function()
+        HumanoidRootPart.CFrame = CFrame.new(4027.166015625, -24.943283081054688, -2038.905517578125)
+    end
+})
+
+Misc:CreateButton({
+    Name = "Printing Spot 4",
+    Callback = function()
+        HumanoidRootPart.CFrame = CFrame.new(3914.718505859375, 0.6765741109848022, -1334.0732421875)
+    end
+})
+
+Misc:CreateButton({
+    Name = "Printing Spot 5",
+    Callback = function()
+        HumanoidRootPart.CFrame = CFrame.new(2748.27392578125, -43.32343673706055, -422.3524169921875)
+    end
+})
+
 Misc:CreateSection("Discord")
 
 Misc:CreateButton({
@@ -1156,29 +1393,33 @@ RunService.RenderStepped:Connect(updateRangeFrame)
 LocalPlayer.CharacterAdded:Connect(updateCharacterReferences)
 
 RunService.Heartbeat:Connect(function()
-    if RemoveGunSpreadToggle == true then
+    if RemoveGunSpreadToggle == true or HitscanGunsToggle == true then
         for i,v in pairs(hookedfunctions) do
             local upvalues = debug.getupvalues(v)
             local gun
             
-            for i,v in pairs(upvalues) do
-                if typeof(v) == "Instance" then
-                    if v:IsA("Model") then
-                        gun = v
+            if RemoveGunSpreadToggle == true then
+                for i,v in pairs(upvalues) do
+                    if typeof(v) == "Instance" then
+                        if v:IsA("Model") then
+                            gun = v
+                        end
                     end
                 end
+                local index = (table.find(upvalues, itemlist[gun.Name]["Accuracy"]))
+                if index then
+                    debug.setupvalue(v, index, 0)
+                end
             end
-            local index = (table.find(upvalues, itemlist[gun.Name]["Accuracy"]))
-            if index then
-                debug.setupvalue(v, index, 0)
+            if HitscanGunsToggle == true then
+                local index = (table.find(upvalues, 700))
+                debug.setupvalue(v, index, 10000)
             end
         end
     else
         for i,v in pairs(hookedfunctions) do
             local upvalues = debug.getupvalues(v)
-            local index = (table.find(upvalues, 0))
             local gun
-            
             for i,v in pairs(upvalues) do
                 if typeof(v) == "Instance" then
                     if v:IsA("Model") then
@@ -1186,9 +1427,19 @@ RunService.Heartbeat:Connect(function()
                     end
                 end
             end
+            if RemoveGunSpreadToggle == true then
+                
 
-            if index then
-                debug.setupvalue(v, index, itemlist[gun.Name]["Accuracy"])
+                local index = (table.find(upvalues, 0))
+                if index then
+                    debug.setupvalue(v, index, itemlist[gun.Name]["Accuracy"])
+                end
+            end
+            if HitscanGunsToggle == true then
+                if gun.Name ~= "SKS" then
+                    local index = (table.find(upvalues, 700))
+                    debug.setupvalue(v, index, 10000)
+                end
             end
         end
     end
