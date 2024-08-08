@@ -856,12 +856,10 @@ if hookfunctiontest() == true then
         end
     })
 
-    CombatTab:CreateToggle({
+    CombatTab:CreateButton({
         Name = "Hitscan guns",
-        Default = false,
-        Flag = "HitscanGunMod",
-        Callback = function(Value)
-            HitscanGunsToggle = Value
+        Callback = function()
+            HitscanGunsToggle = true
         end
     })
 
