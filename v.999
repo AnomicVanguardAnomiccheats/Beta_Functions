@@ -114,6 +114,7 @@ local function IfLocalPlayerIsInCar(returnVehicleObject)
     return false
 end
 
+--thanks to rgie for wallcheck
 local function WallCheck(GunPart, Target)
     local direction = (Target.Character.HumanoidRootPart.Position - GunPart.Position).Unit * (Target.Character.HumanoidRootPart.Position - GunPart.Position).magnitude
     local ray = Ray.new(GunPart.Position, direction)
