@@ -1216,6 +1216,23 @@ Misc:CreateButton({
 })
 
 Misc:CreateSection("Teleports")
+Misc:CreateButton({
+    Name = "Teleport Tool",
+    Callback = function()
+        local TpTool = Instance.new("Tool")
+        TpTool.Name = "Teleport Tool"
+        TpTool.RequiresHandle = false
+        TpTool.Parent = LocalPlayer.Backpack
+        TpTool.Activated:Connect(function()
+            local Char = LocalPlayer.Character or workspace:FindFirstChild(LocalPlayer.Name)
+            local HRP = Char and Char:FindFirstChild("HumanoidRootPart")
+            if not Char or not HRP then
+                return warn("Failed to find HumanoidRootPart")
+            end
+            HRP.CFrame = CFrame.new(mouse.Hit.X, mouse.Hit.Y + 3, mouse.Hit.Z, select(4, HRP.CFrame:components()))
+	    end)
+    end
+})
 
 Misc:CreateButton({
     Name = "A Ghosts Perch",
@@ -1375,7 +1392,7 @@ Misc:CreateButton({
 
 --runspace
 
-if maxDistance == nil then
+if maxDistance == nil and silentaimrangeslider and silentaimrangeslider.CurrentValue then
     maxDistance = silentaimrangeslider.CurrentValue
 end
 
