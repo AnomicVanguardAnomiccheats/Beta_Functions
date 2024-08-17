@@ -56,8 +56,7 @@ local hookedfunctions = {}
 local bodyparts = {"HumanoidRootPart","RightHand","LeftLowerArm","RightLowerArm","LeftUpperArm","RightUpperArm","LowerTorso","RightUpperLeg","LeftFoot","LeftUpperLeg","LeftLowerLeg","RightFoot","UpperTorso","RightLowerLeg","Head","LeftHand"}
 local expandedparts = {}
 
-local function updateCharacterReferences()
-    Char = LocalPlayer.Character or LocalPlayer.CharacterAdded:Wait()
+local function updateCharacterReferences(Char)
     HumanoidRootPart = Char:WaitForChild('HumanoidRootPart')
     Humanoid = Char:WaitForChild('Humanoid')
 end
