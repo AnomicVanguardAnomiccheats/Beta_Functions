@@ -1570,10 +1570,13 @@ end
 for i,v in pairs(Players:GetPlayers()) do
     if v ~= LocalPlayer then
         v.CharacterAdded:Connect(function(character)
+	print("character has spawned in")
             if HitboxToggle == true then
+		print("hitboxtoggle is on")
                 local parttoexpand = character:WaitForChild(ExpandPart)
                 local parttoreflectsize = Char:FindFirstChild(ExpandPart)
                 parttoexpand.Size = Vector3.new(parttoreflectsize.Size.X * HitBoxSliderValue, parttoreflectsize.Size.Y * HitBoxSliderValue, parttoreflectsize.Size.Z * HitBoxSliderValue)
+		print(parttoexpand, parttoreflectsize)
                 table.insert(expandedparts, parttoexpand)
             end
         end)
