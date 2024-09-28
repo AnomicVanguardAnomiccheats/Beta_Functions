@@ -55,6 +55,8 @@ local tagstoupdate = {}
 local hookedfunctions = {}
 local bodyparts = {"HumanoidRootPart","RightHand","LeftLowerArm","RightLowerArm","LeftUpperArm","RightUpperArm","LowerTorso","RightUpperLeg","LeftFoot","LeftUpperLeg","LeftLowerLeg","RightFoot","UpperTorso","RightLowerLeg","Head","LeftHand"}
 local expandedparts = {}
+local tableofhookedfunctionscausesynapsezisdogshitanddoesnotsupportisfunctionhookedbecauseitsaretardedexploitthatdoesthebareminimumfuckyoujay = {}
+local alreadyreloadingguns = {}
 
 local function updateCharacterReferences(Char)
     HumanoidRootPart = Char:WaitForChild('HumanoidRootPart')
@@ -668,7 +670,7 @@ end
 local function applysilentaim(tool, script)
     local senv = getsenv(script)
     print("Silent aim is being applied")
-    if isfunctionhooked(senv.Fire) == false then
+    if not table.find(tableofhookedfunctionscausesynapsezisdogshitanddoesnotsupportisfunctionhookedbecauseitsaretardedexploitthatdoesthebareminimumfuckyoujay, senv.Fire) then
         print("Silent aim is being applied 2")
         local oldhook
         oldhook = hookfunction(senv.Fire, function(...)
@@ -683,6 +685,7 @@ local function applysilentaim(tool, script)
             return oldhook(unpack(args))
         end)
         table.insert(hookedfunctions, oldhook)
+        table.insert(tableofhookedfunctionscausesynapsezisdogshitanddoesnotsupportisfunctionhookedbecauseitsaretardedexploitthatdoesthebareminimumfuckyoujay, senv.Fire)
         print("Silent aim has been applied", tool, script)
     end
 end
@@ -1067,12 +1070,12 @@ ESPTab:CreateToggle({
         end
         while gaymode == true do
             if Hue < 1 then
-                Hue = Hue + 0.005
+                Hue = Hue + 0.05
             else
                 Hue = 0
             end
             updateespcolor(Color3.fromHSV(Hue,1,1), true)
-            task.wait()
+            task.wait(0.1)
         end
     end
 })
@@ -1391,26 +1394,28 @@ Misc:CreateButton({
 
 --runspace
 
-if maxDistance == nil and silentaimrangeslider and silentaimrangeslider.CurrentValue then
-    maxDistance = silentaimrangeslider.CurrentValue
+if maxDistance then
+    if maxDistance == nil and silentaimrangeslider and silentaimrangeslider.CurrentValue then
+        maxDistance = silentaimrangeslider.CurrentValue
+    end
+
+    SilentAimCircle.Enabled = false
+    rangeFrame = Instance.new("Frame", SilentAimCircle)
+
+    rangeFrame.Size = UDim2.new(0, maxDistance * 2, 0, maxDistance * 2)
+    rangeFrame.AnchorPoint = Vector2.new(0.5, 0.5)
+    rangeFrame.BackgroundTransparency = 1
+    rangeFrame.BackgroundColor3 = Color3.fromRGB(0, 0, 0)
+    rangeFrame.BorderSizePixel = 10
+
+    local uiCorner = Instance.new("UICorner", rangeFrame)
+    uiCorner.CornerRadius = UDim.new(1, 0)
+
+    local uistroke = Instance.new("UIStroke", rangeFrame)
+    uistroke.Thickness = 1
+
+    RunService.RenderStepped:Connect(updateRangeFrame)
 end
-
-SilentAimCircle.Enabled = false
-rangeFrame = Instance.new("Frame", SilentAimCircle)
-
-rangeFrame.Size = UDim2.new(0, maxDistance * 2, 0, maxDistance * 2)
-rangeFrame.AnchorPoint = Vector2.new(0.5, 0.5)
-rangeFrame.BackgroundTransparency = 1
-rangeFrame.BackgroundColor3 = Color3.fromRGB(0, 0, 0)
-rangeFrame.BorderSizePixel = 10
-
-local uiCorner = Instance.new("UICorner", rangeFrame)
-uiCorner.CornerRadius = UDim.new(1, 0)
-
-local uistroke = Instance.new("UIStroke", rangeFrame)
-uistroke.Thickness = 1
-
-RunService.RenderStepped:Connect(updateRangeFrame)
 
 LocalPlayer.CharacterAdded:Connect(updateCharacterReferences)
 
@@ -1515,6 +1520,7 @@ uis.InputBegan:Connect(function(inputObj, gPE)
 end)
 
 workspace.Entities.ChildAdded:Connect(function(PossibleTarget)
+    print(PossibleTarget.Name .. " has been dropped")
     if PrinterCrateESP == true then
         makeprinteresp(PossibleTarget)
     end
@@ -1551,14 +1557,18 @@ end)
 Char.ChildAdded:Connect(function(child)
     if child:IsA("Tool") then
         if itemlist[child.Name]["AmmoType"] == "12 Gauge" then
-            print(child)
-            child:WaitForChild("MainGunScript"):WaitForChild("FireEvent").Event:Connect(function()
-                if AutoReloadShotgunToggle == true then
-                    local script = child:WaitForChild("MainGunScript")
-                    local events = game:GetService("ReplicatedStorage"):WaitForChild("_CS.Events")
-                    events.WeaponServer:FireServer("Reload", script.Parent.Handle, script.Parent.Name, 0,nil,0,game.ReplicatedStorage.ServerRunTime.Value)
-                end
-            end)
+            if not table.find(alreadyreloadingguns, child) then
+                print(child)
+                child:WaitForChild("MainGunScript"):WaitForChild("FireEvent").Event:Connect(function()
+                    if AutoReloadShotgunToggle == true then
+                        local script = child:WaitForChild("MainGunScript")
+                        local events = game:GetService("ReplicatedStorage"):WaitForChild("_CS.Events")
+                        events.WeaponServer:FireServer("Reload", script.Parent.Handle, script.Parent.Name, 0,nil,0,game.ReplicatedStorage.ServerRunTime.Value)
+                    end
+                end)
+            else
+                table.insert(alreadyreloadingguns, child)
+            end
         end
     end
 end)
