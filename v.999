@@ -46,6 +46,7 @@ local ExpandPart
 local HitboxToggle
 local SilentAimWallCheck
 local HitscanGunsToggle
+local IgnorePlayersWithForcefield
 
 local AccuracyTable = {}
 local voidedcars = {}
@@ -503,12 +504,16 @@ local function getClosestPlayerToMouseUnitVector(arter)
                 if distance < closestDistance then
                     if SilentAimWallCheck == true then
                         if WallCheck(arter.Main, player) == true then
+                            if not (IgnorePlayersWithForcefield == true and player.Character:FindFirstChild("ForceField")) then
+                                closestDistance = distance
+                                closestPlayer = player
+                            end
+                        end
+                    else
+                        if not (IgnorePlayersWithForcefield == true and player.Character:FindFirstChild("ForceField")) then
                             closestDistance = distance
                             closestPlayer = player
                         end
-                    else
-                        closestDistance = distance
-                        closestPlayer = player
                     end
                 end
             end
@@ -792,6 +797,15 @@ if hookfunctiontest() == true then
         Flag = "SilentAimWallCheck",
         Callback = function(Value)
             SilentAimWallCheck = Value
+        end
+    })
+
+    CombatTab:CreateToggle({
+        Name = "Ignore Players With Forcefield",
+        Default = false,
+        Flag = "IgnoreForceField",
+        Callback = function(Value)
+            IgnorePlayersWithForcefield = Value
         end
     })
 end
