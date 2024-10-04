@@ -1300,7 +1300,7 @@ Misc:CreateButton({
 })
 
 Misc:CreateButton({
-    Name = "Pharump",
+    Name = "Pahrump",
     Callback = function()
         HumanoidRootPart.CFrame = CFrame.new(-102.78692626953125, 9.6765718460083, 29.344724655151367)
     end
@@ -1323,7 +1323,7 @@ Misc:CreateButton({
 Misc:CreateButton({
     Name = "Airfield",
     Callback = function()
-        HumanoidRootPart.CFrame = CFrame.new(1783.2998046875, 77.75467681884766, 572.700927734375)
+        HumanoidRootPart.CFrame = CFrame.new(1854, -20, -40)
     end
 })
 
