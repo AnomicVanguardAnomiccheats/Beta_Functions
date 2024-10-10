@@ -47,6 +47,7 @@ local HitboxToggle
 local SilentAimWallCheck
 local HitscanGunsToggle
 local IgnorePlayersWithForcefield
+local HitboxTransparencyValue
 
 local AccuracyTable = {}
 local voidedcars = {}
@@ -702,6 +703,7 @@ local function HitBoxExpander()
             if vCharacter:FindFirstChild(ExpandPart) then
                 local parttoexpand = vCharacter:FindFirstChild(ExpandPart)
                 local parttoreflectsize = Char:WaitForChild(ExpandPart)
+                parttoexpand.Transparency = HitboxTransparencyValue
                 parttoexpand.Size = Vector3.new(parttoreflectsize.Size.X * HitBoxSliderValue, parttoreflectsize.Size.Y * HitBoxSliderValue, parttoreflectsize.Size.Z * HitBoxSliderValue)
                 table.insert(expandedparts, parttoexpand)
             end
@@ -714,6 +716,20 @@ local function hitboxshrinker()
         if expandedpart then
             local parttoreflectsize = Char:FindFirstChild(expandedpart.Name)
             expandedpart.Size = parttoreflectsize.Size
+            table.remove(expandedparts, table.find(expandedparts, expandedpart))
+            if expandedpart.Name == "HumanoidRootPart" then
+                expandedpart.Transparency = 1
+            else
+                expandedpart.Transparency = 0
+            end
+        end
+    end
+end
+
+local function sethitboxtransparency(transparency)
+    for i,v in pairs(expandedparts) do
+        if v then
+            v.Transparency = transparency
         end
     end
 end
@@ -918,6 +934,20 @@ local ExpandSlider = CombatTab:CreateSlider({
     end
 })
 
+local ExpandTransparency = CombatTab:CreateSlider({
+    Name = "Hitbox Transparency",
+    Range = {0, 1},
+    Increment = 0.05,
+    Suffix = "",
+    CurrentValue = 1,
+    Flag = "HitboxTransparency",
+    Callback = function(Value)
+        HitboxTransparencyValue = Value
+
+        sethitboxtransparency(Value)
+    end
+})
+
 local expandpartdropdown = CombatTab:CreateDropdown({
     Name = "Expand Part",
     Options = bodyparts,
@@ -946,6 +976,8 @@ CombatTab:CreateToggle({
         end
     end
 })
+
+
 
 local CarTab = Window:CreateTab("Vehicle")
 
@@ -1026,7 +1058,7 @@ CarTab:CreateButton({
     end
 })
 
-CarTab:CreateSection("Torque(Made by Bonfire, all credits to him)")
+CarTab:CreateSection("Torque")
 
 CarTab:CreateButton({
     Name = "Torque(May cause you to lose control of your car)",
@@ -1105,11 +1137,6 @@ local PlayerESPButton =ESPTab:CreateToggle({
         PlayerESPToggle = Value
         if Value == true then
             CreatePlayerESP()
-            if identifyexecutor() == "macsploit is the best fucking exploit ever made." then
-                if gaymode == true then
-                    notify("Error", "Gay Mode is not supported for player esp on your executer.", 12797872879, 5)
-                end
-            end
         else
             PlayerESPFolder:Destroy()
         end
@@ -1589,6 +1616,10 @@ end)
 
 if not ExpandPart then
     ExpandPart = ExpandSlider.CurrentValue
+end
+
+if not HitboxTransparencyValue then
+    HitboxTransparencyValue = ExpandTransparency.CurrentValue
 end
 
 for i,v in pairs(Players:GetPlayers()) do
