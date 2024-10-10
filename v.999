@@ -86,7 +86,7 @@ local function hookfunctiontest()
         return false
     end)
     if succ then
-        return true
+        return err
     else
         return false
     end
