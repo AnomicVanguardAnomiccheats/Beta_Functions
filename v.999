@@ -563,7 +563,7 @@ local function VoidCar()
         if HumanoidRootPart then
             local oldpos = HumanoidRootPart.CFrame
             IfLocalPlayerIsInCar(true):SetPrimaryPartCFrame(CFrame.new(71.67208862304688, -94.261329650878906, 800.639015197753906))
-            wait(2)
+            wait(1)
             ExitVehicle()
             repeat
                 Humanoid.Jump = true
